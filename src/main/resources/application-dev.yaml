@@ -25,6 +25,8 @@ spring:
         max-idle: 10
         # 连接池中的最小空闲连接
         min-idle: 0
+        # 空闲链接检测线程检测周期。如果为负值，表示不运行检测线程。（单位：毫秒)
+        time-between-eviction-runs: 300000
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/my-framework?useSSL=false&Unicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true&allowPublicKeyRetrieval=true
@@ -38,40 +40,73 @@ spring:
       min-idle: 5
       max-active: 20
       # 配置获取连接等待超时的时间
-      max-wait: 60000
+      max-wait: 9000
       # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位毫秒
       time-between-eviction-runs-millis: 60000
-      # 配置一个连接在池中最小生存时间
+      # 销毁线程时检测当前连接的最后活动时间和当前时间差大于该值时，关闭当前连接(配置一个连接在池中最小生存时间)
       min-evictable-idle-time-millis: 300000
-      validation-query: SELECT 1 FROM sys_user
+      # 执行连接校验的语句
+      validation-query: SELECT 1 FROM dual
+      # 申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效
       test-while-idle: true
+      # 申请连接时会执行validationQuery检测连接是否有效,开启会降低性能
       test-on-borrow: false
+      # 归还连接时会执行validationQuery检测连接是否有效,开启会降低性能
       test-on-return: false
-      # 打开 PSCache，并且指定每个连接上 PSCache 的大小
-      pool-prepared-statements: true
-      max-pool-prepared-statement-per-connection-size: 20
-      # 配置监控统计拦截的 Filter，去掉后监控界面 SQL 无法统计，wall 用于防火墙
-      #filters: stat,wall,log4j
+      # 是否缓存preparedStatement, 也就是PSCache,PSCache对支持游标的数据库性能提升巨大，比如说oracle,在mysql下建议关闭
+      pool-prepared-statements: false
+      # 要启用PSCache，必须配置大于0，当大于0时，poolPreparedStatements自动触发修改为true。在Druid中，不会存在Oracle下PSCache占用内存过多的问题，可以把这个数值配置大一些，比如说100
+      max-pool-prepared-statement-per-connection-size: -1
+      # 置监控统计拦截的filters，去掉后监控界面sql无法统计，stat: 监控统计、Slf4j:日志记录、waLL: 防御sqL注入
+      filters: stat,wall,slf4j
+      # 合并多个DruidDataSource的监控数据
+      use-global-data-source-stat: true
       # 通过 connection-properties 属性打开 mergeSql 功能；慢 SQL 记录
-      connection-properties: druid.stat.mergeSql\=true;druid.stat.slowSqlMillis\=5000
+      connection-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
       # 配置 DruidStatFilter
       web-stat-filter:
+        # 是否启用StatFilter
         enabled: true
+        # 添加过滤规则
         url-pattern: /*
-        exclusions: .js,*.gif,*.jpg,*.bmp,*.png,*.css,*.ico,/druid/*
+        # 忽略过滤的格式
+        exclusions: /druid/*,*.js,*.gif,*.jpg,*.png,*.css,*.ico
       # 配置 DruidStatViewServlet
       stat-view-servlet:
+        # 是否启用StatViewServlet
+        enabled: true
+        # 访问路径为/druid时，跳转到StatViewServlet
         url-pattern: /druid/*
         # IP 白名单，没有配置或者为空，则允许所有访问
         allow: 127.0.0.1
         # IP 黑名单，若白名单也存在，则优先使用
-        deny: 192.168.31.253
-        # 禁用 HTML 中 Reset All 按钮
+        deny:
+        # 禁用 HTML 中 Reset All 按钮(是否能够重置数据)
         reset-enable: false
         # 登录用户名/密码
         login-username: root
-        login-password: 123
+        login-password: 123456
 
+
+# MyBatis Plus 的配置项
+mybatis-plus:
+  #  在 mybatis-config/mybatis-config.xml 中设置
+  #  configuration:
+  #    map-underscore-to-camel-case: true # 虽然默认为 true ，但是还是显示去指定下。
+  #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 打印日志
+  global-config:
+    db-config:
+      #      id-type: AUTO # 自增 ID
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
+    #      logic-delete-field: deleted # 全局逻辑删除的实体字段名
+    banner: false
+  mapper-locations: classpath*:mapper/*.xml
+  #  config-location: classpath:mybatis-config/mybatis-config.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true    #返回对象属性使用驼峰命名
+    object-wrapper-factory: com.baomidou.mybatisplus.extension.MybatisMapWrapperFactory     #返回JsonObject、Map属性使用驼峰命名
 
 token:
   head: Authorization

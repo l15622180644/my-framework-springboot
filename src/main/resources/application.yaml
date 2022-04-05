@@ -3,23 +3,3 @@ spring:
     name: my-framework-springboot
   profiles:
     active: dev
-
-
-# MyBatis Plus 的配置项
-mybatis-plus:
-  #  在 mybatis-config/mybatis-config.xml 中设置
-  #  configuration:
-  #    map-underscore-to-camel-case: true # 虽然默认为 true ，但是还是显示去指定下。
-  #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 打印日志
-  global-config:
-    db-config:
-      #      id-type: AUTO # 自增 ID
-      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
-      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
-#      logic-delete-field: deleted # 全局逻辑删除的实体字段名
-  mapper-locations: classpath*:mapper/*.xml
-  #  config-location: classpath:mybatis-config/mybatis-config.xml
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-    map-underscore-to-camel-case: true    #返回对象属性使用驼峰命名
-    object-wrapper-factory: com.baomidou.mybatisplus.extension.MybatisMapWrapperFactory     #返回JsonObject、Map属性使用驼峰命名
