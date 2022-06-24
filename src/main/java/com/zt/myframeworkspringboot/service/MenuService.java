@@ -18,24 +18,24 @@ public interface MenuService extends IService<Menu> {
 
     BaseResult getMenuPage(BaseParam param);
 
-    BaseResult getMenuOne(BaseParam param);
+    BaseResult<Menu> getMenuOne(BaseParam param);
 
-    BaseResult addMenu(Menu menu);
+    BaseResult<Boolean> addMenu(Menu menu);
 
-    BaseResult updateMenu(Menu menu);
+    BaseResult<Boolean> updateMenu(Menu menu);
 
     boolean delMenu(Long id);
 
-    BaseResult bathDelMenu(BaseParam param);
+    BaseResult<Boolean> bathDelMenu(BaseParam param);
 
     List<String> getPermsByUser(Long userId);
 
-    BaseResult getMenuTree(BaseParam param);
+    List<Menu> getMenuTree(BaseParam param);
 
-    List<Menu> getMenuTreeByUser(Long id,Integer type);
+    List<Menu> getMenuTreeByUser(BaseParam param);
 
-    List<Menu> getMenuTreeByRole(Long id,Integer type);
+    List<Menu> getMenuTreeByRole(BaseParam param);
 
-    BaseResult getChildMenu(BaseParam param);
+    BaseResult<List<Menu>> getChildMenu(BaseParam param);
 
 }

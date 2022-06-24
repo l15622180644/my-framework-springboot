@@ -3,7 +3,7 @@ package com.zt.myframeworkspringboot.security.core.service;
 import com.zt.myframeworkspringboot.security.core.SecurityUserInfo;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
-public interface SecurityService extends UserDetailsService {
+public interface SecurityService{
 
     /**
      * 校验 token 的有效性，并获取用户信息

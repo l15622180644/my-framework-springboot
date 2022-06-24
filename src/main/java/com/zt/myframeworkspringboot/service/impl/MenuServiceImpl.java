@@ -19,6 +19,7 @@ import com.zt.myframeworkspringboot.common.status.Status;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -36,24 +37,30 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
     private RoleMenuMapper roleMenuMapper;
 
     @Override
-    public BaseResult getMenuPage(BaseParam baseParam){
-        Page<Menu> page = lambdaQuery().page(baseParam.getPage(entityClass));
+    public BaseResult getMenuPage(BaseParam param){
+        Page<Menu> page = lambdaQuery()
+                .like(StringUtils.isNotBlank(param.getName()),Menu::getMenuName,param.getName())
+                .eq(param.getType()!=null,Menu::getMenuType,param.getType())
+                .eq(param.getStatus()!=null,Menu::getStatus,param.getStatus())
+                .eq(param.getId()!=null,Menu::getParentId,param.getId())
+                .orderBy(true,param.getIsASC()!=null?param.getIsASC():false,Menu::getCreateTime)
+                .page(param.getPage(entityClass));
         return BaseResult.returnResult(page);
     }
 
     @Override
-    public BaseResult getMenuOne(BaseParam param){
+    public BaseResult<Menu> getMenuOne(BaseParam param){
         if (param.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
         return BaseResult.returnResult(getById(param.getId()));
     }
 
     @Override
-    public BaseResult addMenu(Menu menu){
+    public BaseResult<Boolean> addMenu(Menu menu){
         return BaseResult.returnResult(save(menu),menu.getId());
     }
 
     @Override
-    public BaseResult updateMenu(Menu menu){
+    public BaseResult<Boolean> updateMenu(Menu menu){
         if (menu.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
         return BaseResult.returnResult(updateById(menu));
     }
@@ -62,8 +69,9 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
     public boolean delMenu(Long id){
         if (id == null) throw  new CustomException(Status.PARAMEXCEPTION);
         Menu menu = getById(id);
-        if(checkMenuExistRole(id)) throw new CustomException("删除失败，原因："+menu.getMenuName()+"存在角色绑定");
+//        if(checkMenuExistRole(id)) throw new CustomException("删除失败，原因：【"+menu.getMenuName()+"】存在绑定角色");
         if(haveChild(id)) throw new CustomException("删除失败，原因："+menu.getMenuName()+"存在子节点");
+        roleMenuMapper.delete(Wrappers.lambdaQuery(RoleMenu.class).eq(RoleMenu::getMenuId,id));
         return removeById(id);
     }
 
@@ -78,7 +86,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
     }
 
     @Override
-    public BaseResult bathDelMenu(BaseParam param){
+    public BaseResult<Boolean> bathDelMenu(BaseParam param){
         if (param.getIds() == null || param.getIds().isEmpty()) return BaseResult.error(Status.PARAMEXCEPTION);
         List<Long> ids = param.getIds();
         ids.forEach(v->{
@@ -97,35 +105,57 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
     }
 
     @Override
-    public BaseResult getMenuTree(BaseParam param) {
-        List<Menu> list = list(Wrappers.lambdaQuery(entityClass));
-        return BaseResult.returnResult(TreeUtils.listToTree(Menu.class, JSONArray.toJSONString(list),"parentId","id","children","sort",-1));
+    public List<Menu> getMenuTree(BaseParam param) {
+        List<Menu> list = list(Wrappers.lambdaQuery(entityClass)
+            .eq(param.getType()!=null,Menu::getMenuType,param.getType())
+            .eq(param.getStatus()!=null,Menu::getStatus,param.getStatus()));
+        return TreeUtils.listToTree(Menu.class, JSONArray.toJSONString(list),"parentId","id","children","sort",-1);
     }
 
     @Override
-    public List<Menu> getMenuTreeByUser(Long id,Integer type) {
-        if(id==null) throw new CustomException(Status.PARAMEXCEPTION);
+    public List<Menu> getMenuTreeByUser(BaseParam param) {
+        if(param.getId()==null) throw new CustomException(Status.PARAMEXCEPTION);
         List<Menu> menu = menuMapper.getMenuByUser(Wrappers.query()
-                .eq("a.user_id", id)
+                .eq("a.user_id", param.getId())
                 .eq("b.status", 1)
                 .eq("d.status", 1)
-                .eq(type!=null,"d.menu_type",type)
+                .in(param.getTypes()!=null&&!param.getTypes().isEmpty(),"d.menu_type",param.getTypes())
         );
         return TreeUtils.listToTree(Menu.class, JSONArray.toJSONString(menu),"parentId","id","children","sort",-1);
     }
 
     @Override
-    public List<Menu> getMenuTreeByRole(Long id,Integer type) {
-        if(id==null) throw new CustomException(Status.PARAMEXCEPTION);
-        List<Menu> menu = menuMapper.getMenuByRole(Wrappers.query()
-                .eq("a.role_id", id)
-                .eq(type!=null,"b.menu_type",type)
-        );
-        return TreeUtils.listToTree(Menu.class, JSONArray.toJSONString(menu),"parentId","id","children","sort",-1);
+    public List<Menu> getMenuTreeByRole(BaseParam param) {
+        if(param.getId()==null) throw new CustomException(Status.PARAMEXCEPTION);
+        //查询角色拥有的权限id
+        List<Long> menuIds = roleMenuMapper.selectList(Wrappers.lambdaQuery(RoleMenu.class).select(RoleMenu::getMenuId).eq(RoleMenu::getRoleId, param.getId())).stream().map(RoleMenu::getMenuId).collect(Collectors.toList());
+        List<Menu> menuTree = getMenuTree(new BaseParam());
+        if (!menuIds.isEmpty()) {
+            menuTree.forEach(v->{
+                if(menuIds.contains(v.getId())){
+                    v.setRoleFlag(true);
+                }else {
+                    v.setRoleFlag(false);
+                }
+                setRoleFlagForChild(v.getChildren(),menuIds);
+            });
+        }
+        return menuTree;
+    }
+
+    void setRoleFlagForChild(List<Menu> list,List menuIds){
+        list.forEach(v->{
+            if(menuIds.contains(v.getId())){
+                v.setRoleFlag(true);
+            }else {
+                v.setRoleFlag(false);
+            }
+            setRoleFlagForChild(v.getChildren(),menuIds);
+        });
     }
 
     @Override
-    public BaseResult getChildMenu(BaseParam param) {
+    public BaseResult<List<Menu>> getChildMenu(BaseParam param) {
         if (param.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
         return BaseResult.returnResult(getChildMenu(param.getId(),param.getStatus(),param.getType()));
     }

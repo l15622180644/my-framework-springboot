@@ -17,8 +17,4 @@ public class DefaultSecurityServiceImpl implements SecurityService {
 
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return null;
-    }
 }

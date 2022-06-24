@@ -20,21 +20,25 @@ public class CustomException extends RuntimeException{
     public CustomException(){}
 
     public CustomException(Integer code,String msg){
+        super(msg);
         this.code = code;
         this.msg = msg;
     }
 
     public CustomException(Status status){
+        super(status.getMsg());
         this.code = status.getCode();
         this.msg = status.getMsg();
     }
 
     public CustomException(String msg){
+        super(msg);
         this.code = Status.OPFAIL.getCode();
         this.msg = msg;
     }
 
     public CustomException(Status status,String msg){
+        super(msg);
         this.code = status.getCode();
         this.msg = msg;
     }

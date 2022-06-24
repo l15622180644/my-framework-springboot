@@ -1,6 +1,7 @@
 package com.zt.myframeworkspringboot.controller;
 
 
+import com.zt.myframeworkspringboot.common.annotation.Log;
 import com.zt.myframeworkspringboot.service.RoleService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +12,7 @@ import com.zt.myframeworkspringboot.common.base.BaseResult;
 import javax.annotation.Resource;
 
 /**
- * 角色
+ * 系统角色
  *
  * @author
  * @since 2022-03-20
@@ -45,6 +46,7 @@ public class RoleController {
      */
     @PostMapping("/addRole")
     @Transactional
+    @Log(module = "系统角色",content = "新增",type = Log.INSERT)
     public BaseResult add(@RequestBody Role role){
         return roleService.addRole(role);
     }
@@ -54,6 +56,7 @@ public class RoleController {
      */
     @PostMapping("/updateRole")
     @Transactional
+    @Log(module = "系统角色",content = "修改",type = Log.UPDATE)
     public BaseResult update(@RequestBody Role role){
         return roleService.updateRole(role);
     }
@@ -63,6 +66,7 @@ public class RoleController {
      */
     @PostMapping("/delRole")
     @Transactional
+    @Log(module = "系统角色",content = "删除",type = Log.DELETE)
     public BaseResult del(@RequestBody BaseParam param){
         return BaseResult.returnResult(roleService.delRole(param.getId()));
     }
@@ -72,6 +76,7 @@ public class RoleController {
      */
     @PostMapping("/bathDelRole")
     @Transactional
+    @Log(module = "系统角色",content = "批量删除",type = Log.DELETE)
     public BaseResult bathDel(@RequestBody BaseParam param){
         return roleService.bathDelRole(param);
     }
@@ -83,6 +88,7 @@ public class RoleController {
      */
     @PostMapping("/updateRolePrivilege")
     @Transactional
+    @Log(module = "系统角色",content = "修改权限",type = Log.UPDATE)
     public BaseResult updateRolePrivilege(@RequestBody Role role){
         return roleService.updateRolePrivilege(role);
     }

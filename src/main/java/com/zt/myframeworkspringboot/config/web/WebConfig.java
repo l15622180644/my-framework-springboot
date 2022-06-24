@@ -1,7 +1,14 @@
 package com.zt.myframeworkspringboot.config.web;
 
+import org.hibernate.validator.HibernateValidator;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.servlet.config.annotation.*;
+
+import javax.validation.Validation;
+import javax.validation.ValidatorFactory;
+import javax.validation.Validator;
 
 @EnableWebMvc
 @Configuration
@@ -33,4 +40,6 @@ public class WebConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 
     }
+
+
 }

@@ -60,11 +60,6 @@ public class SecurityAutoConfig {
     }
 
     @Bean
-    public UsernamePasswordAuthenticationProvider usernamePasswordAuthenticationProvider(SecurityService securityService){
-        return new UsernamePasswordAuthenticationProvider(securityService);
-    }
-
-    @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder(){
         return new BCryptPasswordEncoder();
     }

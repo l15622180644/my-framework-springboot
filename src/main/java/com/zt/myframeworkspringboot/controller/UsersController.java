@@ -1,9 +1,11 @@
 package com.zt.myframeworkspringboot.controller;
 
 
+import com.zt.myframeworkspringboot.common.annotation.Log;
 import com.zt.myframeworkspringboot.param.LoginParam;
 import com.zt.myframeworkspringboot.param.ResetPWParam;
 import com.zt.myframeworkspringboot.service.UsersService;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 import com.zt.myframeworkspringboot.entity.Users;
@@ -11,8 +13,10 @@ import javax.annotation.Resource;
 import com.zt.myframeworkspringboot.common.base.BaseParam;
 import com.zt.myframeworkspringboot.common.base.BaseResult;
 
+import java.util.List;
+
 /**
- * 用户
+ * 系统用户
  *
  * @author
  * @since 2022-03-20
@@ -29,7 +33,7 @@ public class UsersController {
      * 查询列表
      */
     @PostMapping("/getUsersPage")
-    public BaseResult getPage(@RequestBody BaseParam param){
+    public BaseResult<List<Users>> getPage(@RequestBody BaseParam param){
         return usersService.getUsersPage(param);
     }
 
@@ -37,7 +41,7 @@ public class UsersController {
      * 获取详情
      */
     @PostMapping("/getUsersOne")
-    public BaseResult getOne(@RequestBody BaseParam param){
+    public BaseResult<Users> getOne(@RequestBody BaseParam param){
         return usersService.getUsersOne(param);
     }
 
@@ -46,7 +50,8 @@ public class UsersController {
      */
     @PostMapping("/addUsers")
     @Transactional
-    public BaseResult add(@RequestBody Users users){
+    @Log(module = "系统用户",content = "新增",type = Log.INSERT)
+    public BaseResult<Boolean> add(@RequestBody Users users){
         return usersService.addUsers(users);
     }
 
@@ -55,7 +60,8 @@ public class UsersController {
      */
     @PostMapping("/updateUsers")
     @Transactional
-    public BaseResult update(@RequestBody Users users){
+    @Log(module = "系统用户",content = "修改",type = Log.UPDATE)
+    public BaseResult<Boolean> update(@RequestBody Users users){
         return usersService.updateUsers(users);
     }
 
@@ -64,7 +70,8 @@ public class UsersController {
      */
     @PostMapping("/delUsers")
     @Transactional
-    public BaseResult del(@RequestBody BaseParam param){
+    @Log(module = "系统用户",content = "删除",type = Log.DELETE)
+    public BaseResult<Boolean> del(@RequestBody BaseParam param){
         return usersService.delUsers(param);
     }
 
@@ -73,7 +80,8 @@ public class UsersController {
      */
     @PostMapping("/bathDelUsers")
     @Transactional
-    public BaseResult bathDel(@RequestBody BaseParam param){
+    @Log(module = "系统用户",content = "批量删除",type = Log.DELETE)
+    public BaseResult<Boolean> bathDel(@RequestBody BaseParam param){
         return usersService.bathDelUsers(param);
     }
 
@@ -83,7 +91,8 @@ public class UsersController {
      * @return
      */
     @PostMapping("/login")
-    public BaseResult login(@RequestBody LoginParam param){
+    @Log(module = "系统用户",content = "登录",type = Log.CUSTOM)
+    public BaseResult<String> login(@RequestBody @Validated LoginParam param){
         return usersService.login(param);
     }
 
@@ -94,7 +103,8 @@ public class UsersController {
      */
     @PostMapping("/resetPassword")
     @Transactional
-    public BaseResult resetPassword(@RequestBody ResetPWParam param){
+    @Log(module = "系统用户",content = "重置密码",type = Log.UPDATE)
+    public BaseResult<Boolean> resetPassword(@RequestBody ResetPWParam param){
         return usersService.resetPassword(param);
     }
 

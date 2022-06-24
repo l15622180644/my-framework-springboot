@@ -17,18 +17,18 @@ public interface RoleService extends IService<Role> {
 
     BaseResult getRolePage(BaseParam param);
 
-    BaseResult getRoleOne(BaseParam param);
+    BaseResult<Role> getRoleOne(BaseParam param);
 
-    BaseResult addRole(Role role);
+    BaseResult<Boolean> addRole(Role role);
 
-    BaseResult updateRole(Role role);
+    BaseResult<Boolean> updateRole(Role role);
 
     boolean delRole(Long id);
 
-    BaseResult bathDelRole(BaseParam param);
+    BaseResult<Boolean> bathDelRole(BaseParam param);
 
     List<Role> getRoleByUser(Long userId);
 
-    BaseResult updateRolePrivilege(Role role);
+    BaseResult<Boolean> updateRolePrivilege(Role role);
 
 }

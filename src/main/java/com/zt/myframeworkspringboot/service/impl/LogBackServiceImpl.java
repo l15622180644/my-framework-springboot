@@ -1,8 +1,8 @@
 package com.zt.myframeworkspringboot.service.impl;
 
-import com.zt.myframeworkspringboot.entity.UserRole;
-import com.zt.myframeworkspringboot.mapper.UserRoleMapper;
-import com.zt.myframeworkspringboot.service.UserRoleService;
+import com.zt.myframeworkspringboot.entity.LogBack;
+import com.zt.myframeworkspringboot.mapper.LogBackMapper;
+import com.zt.myframeworkspringboot.service.LogBackService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
@@ -13,43 +13,45 @@ import com.zt.myframeworkspringboot.common.status.Status;
 /**
  *
  * @author
- * @since 2022-03-20
+ * @since 2022-03-21
  */
 
 @Service
-public class UserRoleServiceImpl extends ServiceImpl<UserRoleMapper, UserRole> implements UserRoleService {
+public class LogBackServiceImpl extends ServiceImpl<LogBackMapper, LogBack> implements LogBackService {
 
     @Override
-    public BaseResult getUserRolePage(BaseParam baseParam){
-        Page<UserRole> page = lambdaQuery().page(baseParam.getPage(entityClass));
+    public BaseResult getLogBackPage(BaseParam param){
+        Page<LogBack> page = lambdaQuery()
+                .orderBy(true,param.getIsASC()!=null?param.getIsASC():false,LogBack::getCreateTime)
+                .page(param.getPage(entityClass));
         return BaseResult.returnResult(page);
     }
 
     @Override
-    public BaseResult<UserRole> getUserRoleOne(BaseParam param){
+    public BaseResult<LogBack> getLogBackOne(BaseParam param){
         if (param.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
         return BaseResult.returnResult(getById(param.getId()));
     }
 
     @Override
-    public BaseResult<Boolean> addUserRole(UserRole userRole){
-        return BaseResult.returnResult(save(userRole),userRole.getId());
+    public BaseResult<Boolean> addLogBack(LogBack logBack){
+        return BaseResult.returnResult(save(logBack),logBack.getId());
     }
 
     @Override
-    public BaseResult<Boolean> updateUserRole(UserRole userRole){
-        if (userRole.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
-        return BaseResult.returnResult(updateById(userRole));
+    public BaseResult<Boolean> updateLogBack(LogBack logBack){
+        if (logBack.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
+        return BaseResult.returnResult(updateById(logBack));
     }
 
     @Override
-    public BaseResult<Boolean> delUserRole(BaseParam param){
+    public BaseResult<Boolean> delLogBack(BaseParam param){
         if (param.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
         return BaseResult.returnResult(removeById(param.getId()));
     }
 
     @Override
-    public BaseResult<Boolean> bathDelUserRole(BaseParam param){
+    public BaseResult<Boolean> bathDelLogBack(BaseParam param){
         if (param.getIds() == null || param.getIds().isEmpty()) return BaseResult.error(Status.PARAMEXCEPTION);
         return BaseResult.returnResult(removeByIds(param.getIds()));
     }

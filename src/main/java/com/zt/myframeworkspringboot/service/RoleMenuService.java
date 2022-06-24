@@ -15,14 +15,14 @@ public interface RoleMenuService extends IService<RoleMenu> {
 
     BaseResult getRoleMenuPage(BaseParam param);
 
-    BaseResult getRoleMenuOne(BaseParam param);
+    BaseResult<RoleMenu> getRoleMenuOne(BaseParam param);
 
-    BaseResult addRoleMenu(RoleMenu roleMenu);
+    BaseResult<Boolean> addRoleMenu(RoleMenu roleMenu);
 
-    BaseResult updateRoleMenu(RoleMenu roleMenu);
+    BaseResult<Boolean> updateRoleMenu(RoleMenu roleMenu);
 
-    BaseResult delRoleMenu(BaseParam param);
+    BaseResult<Boolean> delRoleMenu(BaseParam param);
 
-    BaseResult bathDelRoleMenu(BaseParam param);
+    BaseResult<Boolean> bathDelRoleMenu(BaseParam param);
 
 }

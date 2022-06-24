@@ -10,7 +10,7 @@ spring:
       max-request-size: 200MB
   redis:
     database: 1
-    host: 127.0.0.1
+    host: localhost
     port: 6379
     password:
     # 连接超时时间（毫秒）
@@ -29,7 +29,7 @@ spring:
         time-between-eviction-runs: 300000
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/my-framework?useSSL=false&Unicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/my-framework?useSSL=false&Unicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true&allowPublicKeyRetrieval=true
     username: root
     password: 123456
     type: com.alibaba.druid.pool.DruidDataSource
@@ -70,7 +70,7 @@ spring:
         # 添加过滤规则
         url-pattern: /*
         # 忽略过滤的格式
-        exclusions: /druid/*,*.js,*.gif,*.jpg,*.png,*.css,*.ico
+        exclusions: /druid/*,*.js,*.gif,*.jpg,*.png,*.css,*.ico,*.html
       # 配置 DruidStatViewServlet
       stat-view-servlet:
         # 是否启用StatViewServlet
@@ -84,7 +84,7 @@ spring:
         # 禁用 HTML 中 Reset All 按钮(是否能够重置数据)
         reset-enable: false
         # 登录用户名/密码
-        login-username: root
+        login-username: admin
         login-password: 123456
 
 
@@ -111,3 +111,7 @@ mybatis-plus:
 token:
   head: Authorization
   timeOut: 120
+
+uploadPath: E:/File
+videoPath: E:/Videos
+

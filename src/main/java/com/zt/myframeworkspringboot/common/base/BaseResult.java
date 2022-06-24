@@ -7,8 +7,8 @@ import com.zt.myframeworkspringboot.common.status.Status;
 
 import java.io.Serializable;
 
-public class BaseResult implements Serializable {
-    
+public class BaseResult<T> implements Serializable {
+
     private static final long serialVersionUID = 1L;
 
     private Long id;
@@ -19,7 +19,7 @@ public class BaseResult implements Serializable {
 
     private int code;
 
-    private Object data;
+    private T data;
 
     public Long getId() {
         return id;
@@ -27,10 +27,6 @@ public class BaseResult implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public void setResult(Object data) {
-        this.data = data;
     }
 
     public String getMsg() {
@@ -57,11 +53,11 @@ public class BaseResult implements Serializable {
         this.code = code;
     }
 
-    public Object getData() {
+    public T getData() {
         return data;
     }
 
-    public void setData(Object data) {
+    public void setData(T data) {
         this.data = data;
     }
 
@@ -75,13 +71,13 @@ public class BaseResult implements Serializable {
         this.msg = resultStatus.getMsg();
     }
 
-    public BaseResult(Status resultStatus, Object data) {
+    public BaseResult(Status resultStatus, T data) {
         this.code = resultStatus.getCode();
         this.msg = resultStatus.getMsg();
         this.data = data;
     }
 
-    public BaseResult(Status resultStatus, Object data,Long id) {
+    public BaseResult(Status resultStatus, T data,Long id) {
         this.code = resultStatus.getCode();
         this.msg = resultStatus.getMsg();
         this.data = data;
@@ -91,7 +87,7 @@ public class BaseResult implements Serializable {
     public BaseResult(Status resultStatus, Page page) {
         this.code = resultStatus.getCode();
         this.msg = resultStatus.getMsg();
-        this.data = page.getRecords();
+        this.data = (T)page.getRecords();
         this.count = longToInt(page.getTotal());  //总数据量
     }
 
@@ -100,23 +96,23 @@ public class BaseResult implements Serializable {
         this.msg = msg;
     }
 
-    public static BaseResult returnResult(int flag) {
+    public static <T> BaseResult<T> returnResult(int flag) {
         return flag == 1 ? new BaseResult(Status.OPSUCCESS, flag) : new BaseResult(Status.OPFAIL, flag);
     }
 
-    public static BaseResult returnResult(boolean flag){
+    public static <T> BaseResult<T> returnResult(boolean flag){
         return flag == true ? new BaseResult(Status.OPSUCCESS,flag) : new BaseResult(Status.OPFAIL,flag);
     }
 
-    public static BaseResult returnResult(int flag,Long id) {
+    public static <T> BaseResult<T> returnResult(int flag,Long id) {
         return flag == 1 ? new BaseResult(Status.OPSUCCESS, flag,id) : new BaseResult(Status.OPFAIL, flag);
     }
 
-    public static BaseResult returnResult(boolean flag,Long id){
+    public static <T> BaseResult<T> returnResult(boolean flag,Long id){
         return flag == true ? new BaseResult(Status.OPSUCCESS,flag,id) : new BaseResult(Status.OPFAIL,flag);
     }
 
-    public static BaseResult returnResult(Object data) {
+    public static <T> BaseResult<T> returnResult(T data) {
         if (data instanceof Page) {
             Page page = (Page) data;
             return page.getRecords() == null ? new BaseResult(Status.FAIL) : new BaseResult(Status.SUCCESS, page);
@@ -124,27 +120,31 @@ public class BaseResult implements Serializable {
         return data == null ? new BaseResult(Status.FAIL) : new BaseResult(Status.SUCCESS, data);
     }
 
-    public static BaseResult success(){
+    public static <T> BaseResult<T> returnResult(Status status,T data) {
+        return new BaseResult(status,data);
+    }
+
+    public static <T> BaseResult<T> success(){
         return new BaseResult(Status.SUCCESS);
     }
 
-    public static BaseResult success(Status status){
+    public static <T> BaseResult<T> success(Status status){
         return new BaseResult(status);
     }
 
-    public static BaseResult success(String msg){
+    public static <T> BaseResult<T> success(String msg){
         return new BaseResult(Status.OPSUCCESS,msg);
     }
 
-    public static BaseResult error(Status status) {
+    public static <T> BaseResult<T> error(Status status) {
         return new BaseResult(status);
     }
 
-    public static BaseResult error(Status status,String msg) {
+    public static <T> BaseResult<T> error(Status status,String msg) {
         return new BaseResult(status,msg);
     }
 
-    public static BaseResult error(String msg) {
+    public static <T> BaseResult<T> error(String msg) {
         return new BaseResult(Status.OPFAIL,msg);
     }
 

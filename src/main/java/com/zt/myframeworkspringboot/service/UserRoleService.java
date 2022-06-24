@@ -15,14 +15,14 @@ public interface UserRoleService extends IService<UserRole> {
 
     BaseResult getUserRolePage(BaseParam param);
 
-    BaseResult getUserRoleOne(BaseParam param);
+    BaseResult<UserRole> getUserRoleOne(BaseParam param);
 
-    BaseResult addUserRole(UserRole userRole);
+    BaseResult<Boolean> addUserRole(UserRole userRole);
 
-    BaseResult updateUserRole(UserRole userRole);
+    BaseResult<Boolean> updateUserRole(UserRole userRole);
 
-    BaseResult delUserRole(BaseParam param);
+    BaseResult<Boolean> delUserRole(BaseParam param);
 
-    BaseResult bathDelUserRole(BaseParam param);
+    BaseResult<Boolean> bathDelUserRole(BaseParam param);
 
 }

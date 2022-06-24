@@ -26,30 +26,30 @@ public class RoleMenuServiceImpl extends ServiceImpl<RoleMenuMapper, RoleMenu> i
     }
 
     @Override
-    public BaseResult getRoleMenuOne(BaseParam param){
+    public BaseResult<RoleMenu> getRoleMenuOne(BaseParam param){
         if (param.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
         return BaseResult.returnResult(getById(param.getId()));
     }
 
     @Override
-    public BaseResult addRoleMenu(RoleMenu roleMenu){
+    public BaseResult<Boolean> addRoleMenu(RoleMenu roleMenu){
         return BaseResult.returnResult(save(roleMenu),roleMenu.getId());
     }
 
     @Override
-    public BaseResult updateRoleMenu(RoleMenu roleMenu){
+    public BaseResult<Boolean> updateRoleMenu(RoleMenu roleMenu){
         if (roleMenu.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
         return BaseResult.returnResult(updateById(roleMenu));
     }
 
     @Override
-    public BaseResult delRoleMenu(BaseParam param){
+    public BaseResult<Boolean> delRoleMenu(BaseParam param){
         if (param.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
         return BaseResult.returnResult(removeById(param.getId()));
     }
 
     @Override
-    public BaseResult bathDelRoleMenu(BaseParam param){
+    public BaseResult<Boolean> bathDelRoleMenu(BaseParam param){
         if (param.getIds() == null || param.getIds().isEmpty()) return BaseResult.error(Status.PARAMEXCEPTION);
         return BaseResult.returnResult(removeByIds(param.getIds()));
     }

@@ -1,6 +1,7 @@
 package com.zt.myframeworkspringboot.controller;
 
 
+import com.zt.myframeworkspringboot.common.annotation.Log;
 import com.zt.myframeworkspringboot.service.MenuService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,8 +10,10 @@ import javax.annotation.Resource;
 import com.zt.myframeworkspringboot.common.base.BaseParam;
 import com.zt.myframeworkspringboot.common.base.BaseResult;
 
+import java.util.List;
+
 /**
- * 菜单
+ * 菜单权限
  *
  * @author
  * @since 2022-03-20
@@ -27,7 +30,7 @@ public class MenuController {
      * 查询列表
      */
     @PostMapping("/getMenuPage")
-    public BaseResult getPage(@RequestBody BaseParam param){
+    public BaseResult<List<Menu>> getPage(@RequestBody BaseParam param){
         return menuService.getMenuPage(param);
     }
 
@@ -35,7 +38,7 @@ public class MenuController {
      * 获取详情
      */
     @PostMapping("/getMenuOne")
-    public BaseResult getOne(@RequestBody BaseParam param){
+    public BaseResult<Menu> getOne(@RequestBody BaseParam param){
         return menuService.getMenuOne(param);
     }
 
@@ -44,7 +47,8 @@ public class MenuController {
      */
     @PostMapping("/addMenu")
     @Transactional
-    public BaseResult add(@RequestBody Menu menu){
+    @Log(module = "菜单权限",content = "新增",type = Log.INSERT)
+    public BaseResult<Boolean> add(@RequestBody Menu menu){
         return menuService.addMenu(menu);
     }
 
@@ -53,7 +57,8 @@ public class MenuController {
      */
     @PostMapping("/updateMenu")
     @Transactional
-    public BaseResult update(@RequestBody Menu menu){
+    @Log(module = "菜单权限",content = "修改",type = Log.UPDATE)
+    public BaseResult<Boolean> update(@RequestBody Menu menu){
         return menuService.updateMenu(menu);
     }
 
@@ -62,7 +67,8 @@ public class MenuController {
      */
     @PostMapping("/delMenu")
     @Transactional
-    public BaseResult del(@RequestBody BaseParam param){
+    @Log(module = "菜单权限",content = "删除",type = Log.DELETE)
+    public BaseResult<Boolean> del(@RequestBody BaseParam param){
         return BaseResult.returnResult(menuService.delMenu(param.getId()));
     }
 
@@ -71,7 +77,8 @@ public class MenuController {
      */
     @PostMapping("/bathDelMenu")
     @Transactional
-    public BaseResult bathDel(@RequestBody BaseParam param){
+    @Log(module = "菜单权限",content = "批量删除",type = Log.DELETE)
+    public BaseResult<Boolean> bathDel(@RequestBody BaseParam param){
         return menuService.bathDelMenu(param);
     }
 
@@ -81,7 +88,7 @@ public class MenuController {
      * @return
      */
     @PostMapping("/getChildMenu")
-    public BaseResult getChildMenu(@RequestBody BaseParam param){
+    public BaseResult<List<Menu>> getChildMenu(@RequestBody BaseParam param){
         return menuService.getChildMenu(param);
     }
 
@@ -91,8 +98,8 @@ public class MenuController {
      * @return
      */
     @PostMapping("/getMenuTree")
-    public BaseResult getMenuTree(@RequestBody BaseParam param){
-        return menuService.getMenuTree(param);
+    public BaseResult<List<Menu>> getMenuTree(@RequestBody BaseParam param){
+        return BaseResult.returnResult(menuService.getMenuTree(param));
     }
 
     /**
@@ -101,8 +108,8 @@ public class MenuController {
      * @return
      */
     @PostMapping("/getMenuTreeByUser")
-    public BaseResult getMenuTreeByUser(@RequestBody BaseParam param){
-        return BaseResult.returnResult(menuService.getMenuTreeByUser(param.getId(),param.getType()));
+    public BaseResult<List<Menu>> getMenuTreeByUser(@RequestBody BaseParam param){
+        return BaseResult.returnResult(menuService.getMenuTreeByUser(param));
     }
 
     /**
@@ -111,8 +118,8 @@ public class MenuController {
      * @return
      */
     @PostMapping("/getMenuTreeByRole")
-    public BaseResult getMenuTreeByRole(@RequestBody BaseParam param){
-        return BaseResult.returnResult(menuService.getMenuTreeByRole(param.getId(),param.getType()));
+    public BaseResult<List<Menu>> getMenuTreeByRole(@RequestBody BaseParam param){
+        return BaseResult.returnResult(menuService.getMenuTreeByRole(param));
     }
 
 

@@ -4,16 +4,14 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zt.myframeworkspringboot.common.exception.CustomException;
 import com.zt.myframeworkspringboot.common.status.Status;
-import com.zt.myframeworkspringboot.entity.Role;
-import com.zt.myframeworkspringboot.entity.RoleMenu;
-import com.zt.myframeworkspringboot.entity.UserRole;
-import com.zt.myframeworkspringboot.entity.Users;
+import com.zt.myframeworkspringboot.entity.*;
 import com.zt.myframeworkspringboot.mapper.RoleMapper;
 import com.zt.myframeworkspringboot.mapper.RoleMenuMapper;
 import com.zt.myframeworkspringboot.mapper.UserRoleMapper;
 import com.zt.myframeworkspringboot.mapper.UsersMapper;
 import com.zt.myframeworkspringboot.service.RoleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import com.zt.myframeworkspringboot.common.base.BaseParam;
 import com.zt.myframeworkspringboot.common.base.BaseResult;
@@ -44,23 +42,24 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     private UsersMapper usersMapper;
 
     @Override
-    public BaseResult getRolePage(BaseParam baseParam){
-        Page<Role> page = lambdaQuery().page(baseParam.getPage(entityClass));
+    public BaseResult getRolePage(BaseParam param){
+        Page<Role> page = lambdaQuery()
+                .like(StringUtils.isNotBlank(param.getName()),Role::getRoleName,param.getName())
+                .eq(param.getStatus()!=null,Role::getStatus,param.getStatus())
+                .orderBy(true,param.getIsASC()!=null?param.getIsASC():false, Role::getCreateTime)
+                .page(param.getPage(entityClass));
         return BaseResult.returnResult(page);
     }
 
     @Override
-    public BaseResult getRoleOne(BaseParam param){
+    public BaseResult<Role> getRoleOne(BaseParam param){
         if (param.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
         Role role = getById(param.getId());
-        if(role!=null){
-
-        }
         return BaseResult.returnResult(role);
     }
 
     @Override
-    public BaseResult addRole(Role role){
+    public BaseResult<Boolean> addRole(Role role){
         save(role);
         List<Long> menuIds = role.getMenuIds();
         if(menuIds!=null&&role.getId()!=null){
@@ -73,7 +72,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     }
 
     @Override
-    public BaseResult updateRole(Role role){
+    public BaseResult<Boolean> updateRole(Role role){
         if (role.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
         updateRolePrivilege(role);
         return BaseResult.returnResult(updateById(role));
@@ -82,9 +81,10 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     @Override
     public boolean delRole(Long id){
         if (id == null) throw  new CustomException(Status.PARAMEXCEPTION);
-        Role role = getById(id);
-        if(haveUserByRole(id)) throw new CustomException("删除失败，原因："+role.getRoleName()+"存在绑定用户");
+//        Role role = getById(id);
+//        if(haveUserByRole(id)) throw new CustomException("删除失败，原因：【"+role.getRoleName()+"】存在绑定用户");
         roleMenuMapper.delete(Wrappers.lambdaQuery(RoleMenu.class).eq(RoleMenu::getRoleId,id));
+        userRoleMapper.delete(Wrappers.lambdaQuery(UserRole.class).eq(UserRole::getRoleId,id));
         return removeById(id);
     }
 
@@ -99,7 +99,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     }
 
     @Override
-    public BaseResult bathDelRole(BaseParam param){
+    public BaseResult<Boolean> bathDelRole(BaseParam param){
         if (param.getIds() == null || param.getIds().isEmpty()) return BaseResult.error(Status.PARAMEXCEPTION);
         List<Long> ids = param.getIds();
         ids.forEach(v->{
@@ -116,7 +116,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     }
 
     @Override
-    public BaseResult updateRolePrivilege(Role role) {
+    public BaseResult<Boolean> updateRolePrivilege(Role role) {
         if (role.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
         List<Long> menuIds = role.getMenuIds();
         if (menuIds!=null) {

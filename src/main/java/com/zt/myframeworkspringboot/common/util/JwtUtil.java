@@ -43,7 +43,7 @@ public class JwtUtil {
                 .withSubject("")    //jwt所面向的用户，即他的所有人
                 .withIssuer("auth0")    //签发者
                 .withIssuedAt(new Date())   //签发时间
-                .withExpiresAt(calendar.getTime())    //有效时间
+//                .withExpiresAt(calendar.getTime())    //有效时间
                 .sign(Algorithm.HMAC256(SECRET));   //签名（signature） = 加密后的（编码后的header + 编码后的payload + 盐（服务端秘钥））
         return jwtToken;
     }

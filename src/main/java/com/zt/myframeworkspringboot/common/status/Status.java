@@ -8,12 +8,12 @@ public enum Status {
     OPFAIL(3, "操作失败"),
 
     TOKENTIMEOUT(-1, "token已过期"),
+    PARAMEXCEPTION(-2, "参数格式有误"),
+    EXCEPTION(-3, "网络异常"),
     TOKENNOTEXIST(-11, "token不存在"),
     TOKENCHANGED(-12, "用户信息或权限已发生改变，请重新登陆"),
     FORBIDDEN(-13,"您没有权限访问"),
-
-    PARAMEXCEPTION(-2, "参数格式有误"),
-    EXCEPTION(-3, "网络异常"),
+    REQUEST_TOO_FREQUENT(-14,"您的访问过于频繁，请稍后再试吧~"),
 
     LOGINSUCCESS(10, "登录成功"),
     LOGINFAILCAUSEPWD(11, "登录失败，用户名或密码错误"),

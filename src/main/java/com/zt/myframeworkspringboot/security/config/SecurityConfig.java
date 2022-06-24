@@ -1,22 +1,23 @@
 package com.zt.myframeworkspringboot.security.config;
 
 
+import com.zt.myframeworkspringboot.security.core.filter.IpUrlLimitFilter;
 import com.zt.myframeworkspringboot.security.core.filter.JWTAuthenticationTokenFilter;
 import com.zt.myframeworkspringboot.security.core.handle.AccessDeniedHandlerImpl;
 import com.zt.myframeworkspringboot.security.core.handle.AuthenticationEntryPointImpl;
 import com.zt.myframeworkspringboot.security.core.provider.UsernamePasswordAuthenticationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.zt.myframeworkspringboot.security.core.service.SecurityService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
@@ -44,11 +45,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Resource
     @Lazy
-    private JWTAuthenticationTokenFilter jwtAuthenticationTokenFilter;
+    private UsernamePasswordAuthenticationProvider usernamePasswordAuthenticationProvider;
 
     @Resource
     @Lazy
-    private UsernamePasswordAuthenticationProvider usernamePasswordAuthenticationProvider;
+    private SecurityService securityService;
+
+    @Resource
+    private SecurityProperties securityProperties;
+
+    @Resource
+    private RedisTemplate<String,Object> redisTemplate;
 
     //核心配置
     @Override
@@ -67,15 +74,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             //权限不足处理
             .accessDeniedHandler(accessDeniedHandler).and()
             //登出处理
-            .logout().logoutUrl("/logout").logoutSuccessHandler(logoutSuccessHandler);
+            .logout().logoutUrl("/userService/logout").logoutSuccessHandler(logoutSuccessHandler);
 
         //请求过滤
         http.authorizeHttpRequests()
-                .antMatchers("/usersService/login").permitAll()
+                .antMatchers("/**/login").permitAll()
                 .antMatchers("/sysService/captcha").permitAll()
+                .antMatchers("/druid/**").permitAll()
+                .antMatchers("/fmsService/download").permitAll()
+                .antMatchers("/fmsService/showPic").permitAll()
+                .antMatchers("/fmsService/showVideo").permitAll()
                 .anyRequest().authenticated();
 
-        http.addFilterBefore(jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new JWTAuthenticationTokenFilter(securityProperties,securityService), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new IpUrlLimitFilter(redisTemplate), JWTAuthenticationTokenFilter.class);
 
     }
 

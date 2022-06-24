@@ -22,7 +22,7 @@ public class SecurityUserInfo implements UserDetails {
 
     private Users userInfo;
 
-    private List<String> perms;
+    private List<String> permissions;
 
     private String token;
 
@@ -30,25 +30,25 @@ public class SecurityUserInfo implements UserDetails {
 
     private List<Role> roleList;
 
-    private String platform;
+    private Integer platform;
 
     public SecurityUserInfo() {
     }
 
     public SecurityUserInfo(Users userInfo, List<String> permissions) {
         this.userInfo = userInfo;
-        this.perms = permissions;
+        this.permissions = permissions;
     }
 
-    public SecurityUserInfo(Users userInfo, List<String> perms, List<Role> roleList) {
+    public SecurityUserInfo(Users userInfo, List<String> permissions, List<Role> roleList) {
         this.userInfo = userInfo;
-        this.perms = perms;
+        this.permissions = permissions;
         this.roleList = roleList;
     }
 
     public SecurityUserInfo(Users userInfo, List<String> permissions, String token, Long loginTime) {
         this.userInfo = userInfo;
-        this.perms = permissions;
+        this.permissions = permissions;
         this.token = token;
         this.loginTime = loginTime;
     }

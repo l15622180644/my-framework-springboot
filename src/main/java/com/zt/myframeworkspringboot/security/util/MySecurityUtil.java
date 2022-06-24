@@ -7,7 +7,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class MySecurityUtil {
 
     public static SecurityUserInfo getUser(){
-        return (SecurityUserInfo)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        try {
+            return (SecurityUserInfo)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

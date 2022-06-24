@@ -1,10 +1,13 @@
 package com.zt.myframeworkspringboot.common.exception;
 
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.zt.myframeworkspringboot.common.base.BaseResult;
 import com.zt.myframeworkspringboot.common.status.Status;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,9 +15,13 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 @ResponseBody
@@ -41,7 +48,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = HttpMessageNotReadableException.class)
     public BaseResult exceptionHandler(HttpMessageNotReadableException e) {
         LOGGER.error(HttpMessageNotReadableException.class.getName(), e);
-        return new BaseResult(Status.PARAMEXCEPTION);
+        return new BaseResult(Status.PARAMEXCEPTION,Status.PARAMEXCEPTION.getMsg() + "，原因："+e.getCause().getMessage());
     }
 
     /**
@@ -72,9 +79,13 @@ public class GlobalExceptionHandler {
      * @return
      */
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public BaseResult exceptionHandler(MethodArgumentNotValidException e){
         LOGGER.error(MethodArgumentNotValidException.class.getName(), e);
-        return new BaseResult(Status.PARAMEXCEPTION,e.getBindingResult().getFieldError().getDefaultMessage());
+        String msg = e.getBindingResult().getFieldErrors().stream().map(err->{
+            return err.getField() + err.getDefaultMessage();
+        }).collect(Collectors.joining("；"));
+        return new BaseResult(Status.PARAMEXCEPTION,Status.PARAMEXCEPTION.getMsg() + "，原因：" +msg);
     }
 
     /**

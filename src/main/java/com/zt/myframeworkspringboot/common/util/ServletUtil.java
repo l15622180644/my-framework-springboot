@@ -1,6 +1,8 @@
 package com.zt.myframeworkspringboot.common.util;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.zt.myframeworkspringboot.common.base.BaseResult;
 import com.zt.myframeworkspringboot.common.status.Status;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -93,8 +95,9 @@ public class ServletUtil {
     }
 
     public static void returnJSON(HttpServletResponse response, Status status, String msg) {
+        if(response==null) response = getResponse();
         response.setCharacterEncoding("utf-8");
-        response.setContentType("text/html; charset=utf-8");
+        response.setContentType("text/json; charset=utf-8");
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("code", status.getCode());
         jsonObject.put("msg", msg!=null?msg:status.getMsg());
@@ -103,6 +106,23 @@ public class ServletUtil {
         try {
             writer = response.getWriter();
             writer.write(jsonString);
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (writer != null) writer.close();
+        }
+    }
+
+    public static void returnJSON(HttpServletResponse response, Object object) {
+        if(response==null) response = getResponse();
+        response.setCharacterEncoding("utf-8");
+        response.setContentType("text/json; charset=utf-8");
+        String json = JSON.toJSONString(BaseResult.returnResult(object));
+        PrintWriter writer = null;
+        try {
+            writer = response.getWriter();
+            writer.write(json);
             writer.flush();
         } catch (IOException e) {
             e.printStackTrace();

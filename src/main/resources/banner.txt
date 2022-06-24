@@ -1,4 +1,4 @@
-${AnsiColor.YELLOW}
+${AnsiColor.BRIGHT_YELLOW}
 
       ▐▒▒░▄
        ▒▒▒▒▒▒▒▒▄

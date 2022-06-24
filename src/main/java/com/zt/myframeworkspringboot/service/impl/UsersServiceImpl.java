@@ -27,6 +27,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -38,6 +39,7 @@ import com.zt.myframeworkspringboot.common.status.Status;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -70,24 +72,33 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
     @Resource
     private UserRoleMapper userRoleMapper;
 
+
     @Override
-    public BaseResult getUsersPage(BaseParam baseParam){
-        Page<Users> page = lambdaQuery().page(baseParam.getPage(entityClass));
+    public BaseResult getUsersPage(BaseParam param){
+        Page<Users> page = lambdaQuery()
+                .select(Users.class,v->!v.getColumn().equals("password"))
+                .like(StringUtils.isNotBlank(param.getName()),Users::getNickname,param.getName())
+                .like(StringUtils.isNotBlank(param.getPhone()),Users::getPhone,param.getPhone())
+                .eq(param.getStatus()!=null,Users::getStatus,param.getStatus())
+                .orderBy(true,param.getIsASC()!=null?param.getIsASC():false, Users::getCreateTime)
+                .page(param.getPage(entityClass));
         return BaseResult.returnResult(page);
     }
 
     @Override
-    public BaseResult getUsersOne(BaseParam param){
+    public BaseResult<Users> getUsersOne(BaseParam param){
         if (param.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
         Users users = getById(param.getId());
         if(users!=null){
+            users.setPassword(null);
             users.setRoleList(roleService.getRoleByUser(users.getId()));
         }
         return BaseResult.returnResult(users);
     }
 
     @Override
-    public BaseResult addUsers(Users users){
+    public BaseResult<Boolean> addUsers(Users users){
+        if(count(Wrappers.lambdaQuery(entityClass).eq(Users::getLoginName,users.getLoginName()))>0) return BaseResult.error("账号已存在");
         users.setPassword(bCryptPasswordEncoder.encode(users.getPassword()));
         save(users);
         List<Long> roleIds = users.getRoleIds();
@@ -100,8 +111,10 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
     }
 
     @Override
-    public BaseResult updateUsers(Users users){
+    public BaseResult<Boolean> updateUsers(Users users){
         if (users.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
+        if(count(Wrappers.lambdaQuery(entityClass).eq(Users::getLoginName,users.getLoginName()).ne(Users::getId,users.getId()))>0) return BaseResult.error("账号已存在");
+        users.setPassword(null);
         List<Long> roleIds = users.getRoleIds();
         if(roleIds!=null){
             userRoleMapper.delete(Wrappers.lambdaQuery(UserRole.class).eq(UserRole::getUserId,users.getId()));
@@ -109,23 +122,29 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
                 if(userRoleMapper.insert(new UserRole(users.getId(),v))!=1) throw new CustomException(Status.OPFAIL);
             });
         }
-        return BaseResult.returnResult(updateById(users));
+        boolean b = updateById(users);
+        if(b) reloadUserCache(users.getId());
+        return BaseResult.returnResult(b);
     }
 
     @Override
-    public BaseResult delUsers(BaseParam param){
+    public BaseResult<Boolean> delUsers(BaseParam param){
         if (param.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
-        return BaseResult.returnResult(removeById(param.getId()));
+        boolean b = removeById(param.getId());
+        if(b) reloadUserCache(param.getId());
+        return BaseResult.returnResult(b);
     }
 
     @Override
-    public BaseResult bathDelUsers(BaseParam param){
+    public BaseResult<Boolean> bathDelUsers(BaseParam param){
         if (param.getIds() == null || param.getIds().isEmpty()) return BaseResult.error(Status.PARAMEXCEPTION);
-        return BaseResult.returnResult(removeByIds(param.getIds()));
+        boolean b = removeByIds(param.getIds());
+        if(b) param.getIds().forEach(this::reloadUserCache);
+        return BaseResult.returnResult(b);
     }
 
     @Override
-    public BaseResult login(LoginParam param) {
+    public BaseResult<String> login(LoginParam param) {
         String captchaKey = Constants.CAPTCHA_CODE_KEY.getName() + param.getKey();
         Object realCode = redisTemplate.opsForValue().get(captchaKey);
         if(realCode==null) return new BaseResult(Status.LOGIN_FAIL_CAUSE_CODE_INVALID);
@@ -137,17 +156,20 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
         if(!bCryptPasswordEncoder.matches(param.getPassword(),users.getPassword())) return new BaseResult(Status.LOGINFAILCAUSEPWD);
         if(users.getStatus()==0) return new BaseResult(Status.LOGINFAILCAUSEBAN);
         users.setPassword(null);
-        String token = AesUtil.enCode(users.getId() + TimeHelper.getCurrentTime10Str());
+        String token = AesUtil.enCode(users.getId().toString()) + "-" + AesUtil.enCode(TimeHelper.getCurrentTime10Str());
         String jwtToken = JwtUtil.createToken(token);
         securityUserInfo.setToken(jwtToken);
         securityUserInfo.setLoginTime(TimeHelper.getCurrentTime10());
-        securityUserInfo.setPlatform("0");//pc登录
+        securityUserInfo.setPlatform(0);//pc登录
         redisTemplate.opsForValue().set(token, JSON.toJSONString(securityUserInfo), securityProperties.getTimeOut() ,TimeUnit.MINUTES);
-        return BaseResult.success(jwtToken);
+        //设置到security上下文
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(securityUserInfo, null, null);
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        return BaseResult.returnResult(Status.LOGINSUCCESS,jwtToken);
     }
 
     @Override
-    public BaseResult resetPassword(ResetPWParam param) {
+    public BaseResult<Boolean> resetPassword(ResetPWParam param) {
         if (param.getId() == null) return BaseResult.error(Status.PARAMEXCEPTION);
 //        Users users1 = getById(param.getId());
 //        if(!bCryptPasswordEncoder.matches(param.getPassword(),users1.getPassword())) return BaseResult.error("原密码错误");
@@ -158,27 +180,41 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
     }
 
     @Override
+    public void reloadUserCache(Long userId) {
+        Set<String> keys = redisTemplate.keys(AesUtil.enCode(userId.toString()) + "-*");
+        Users users = getById(userId);
+        if(users!=null) users.setRoleList(roleService.getRoleByUser(users.getId()));
+        keys.forEach(key->{
+            Long expire = redisTemplate.getExpire(key);
+            if(expire>0){
+                String s = (String)redisTemplate.opsForValue().get(key);
+                SecurityUserInfo securityUserInfo = JSONObject.parseObject(s, SecurityUserInfo.class);
+                if(users==null || users.getStatus()==0) {
+                    redisTemplate.delete(key);
+                    return;
+                }
+                securityUserInfo.setUserInfo(users);
+                securityUserInfo.setPermissions(menuService.getPermsByUser(users.getId()));
+                redisTemplate.opsForValue().set(key,JSON.toJSONString(securityUserInfo),expire/60,TimeUnit.MINUTES);
+            }
+        });
+    }
+
+    @Override
     public SecurityUserInfo verifyTokenAndRefresh(String token) {
         String verifyToken = JwtUtil.verifyToken(token);
         SecurityUserInfo securityUserInfo = null;
-        String s = (String)redisTemplate.opsForValue().get(verifyToken);
+        String s = verifyToken!=null?(String)redisTemplate.opsForValue().get(verifyToken):null;
         if(StringUtils.isNotBlank(s)) {
             securityUserInfo = JSONObject.parseObject(s,SecurityUserInfo.class);
-            if((TimeHelper.getCurrentTime10() - securityUserInfo.getLoginTime()) > 5400) redisTemplate.expire(token,securityProperties.getTimeOut(), TimeUnit.MINUTES);
+            if((TimeHelper.getCurrentTime10() - securityUserInfo.getLoginTime()) > 3600) redisTemplate.expire(verifyToken,securityProperties.getTimeOut(), TimeUnit.MINUTES);
         }
         return securityUserInfo;
     }
 
     @Override
     public void logout(String token) {
-        redisTemplate.delete(token);
+        redisTemplate.delete(JwtUtil.verifyToken(token));
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Users users = getOne(Wrappers.lambdaQuery(Users.class).eq(Users::getLoginName,username));
-        if(users==null) throw new CustomException(Status.LOGINFAILCAUSEPWD);
-        List<Role> roles = roleService.getRoleByUser(users.getId());
-        return new SecurityUserInfo(users,menuService.getPermsByUser(users.getId()),roles);
-    }
 }

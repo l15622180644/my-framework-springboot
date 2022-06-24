@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
     <!-- 日志根目录-->
-    <springProperty scope="context" name="LOG_HOME" source="logging.path" defaultValue="E:/log/WXB-ELE"/>
+    <springProperty scope="context" name="LOG_HOME" source="logging.path" defaultValue="E:/log/my-framework"/>
 
     <!-- 日志级别 -->
     <springProperty scope="context" name="LOG_ROOT_LEVEL" source="logging.level.root" defaultValue="INFO"/>
@@ -25,7 +25,7 @@
     <property name="MAX_FILE_SIZE" value="50MB" />
 
     <!-- 配置日志的滚动时间 ，表示只保留最近 几 天的日志-->
-    <property name="MAX_HISTORY" value="1"/>
+    <property name="MAX_HISTORY" value="7"/>
 
 
     <!--=================================================分割线=================================================-->

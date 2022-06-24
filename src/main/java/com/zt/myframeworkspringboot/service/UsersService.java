@@ -18,18 +18,20 @@ public interface UsersService extends IService<Users>, SecurityService {
 
     BaseResult getUsersPage(BaseParam param);
 
-    BaseResult getUsersOne(BaseParam param);
+    BaseResult<Users> getUsersOne(BaseParam param);
 
-    BaseResult addUsers(Users users);
+    BaseResult<Boolean> addUsers(Users users);
 
-    BaseResult updateUsers(Users users);
+    BaseResult<Boolean> updateUsers(Users users);
 
-    BaseResult delUsers(BaseParam param);
+    BaseResult<Boolean> delUsers(BaseParam param);
 
-    BaseResult bathDelUsers(BaseParam param);
+    BaseResult<Boolean> bathDelUsers(BaseParam param);
 
-    BaseResult login(LoginParam param);
+    BaseResult<String> login(LoginParam param);
 
-    BaseResult resetPassword(ResetPWParam param);
+    BaseResult<Boolean> resetPassword(ResetPWParam param);
+
+    void reloadUserCache(Long userId);
 
 }
